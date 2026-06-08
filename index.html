@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnam: The Long War | AP US History Simulation</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-container">
+
+    <!-- MAIN MENU -->
+    <div id="screen-menu" class="screen active">
+        <div class="menu-bg"></div>
+        <div class="scanlines"></div>
+        <div class="menu-content">
+            <div class="classified-stamp">CLASSIFIED</div>
+            <h1 class="game-title">VIETNAM<br><span class="subtitle-title">THE LONG WAR</span></h1>
+            <p class="menu-subtitle">An AP US History Strategic Simulation · 1963 – 1975</p>
+            <div class="menu-buttons">
+                <button class="btn-primary" id="btn-start-campaign">▶ BEGIN CAMPAIGN</button>
+                <button class="btn-secondary" id="btn-tutorial">❓ HOW TO PLAY</button>
+                <button class="btn-secondary" id="btn-historical-docs">📋 HISTORICAL DOCUMENTS</button>
+                <button class="btn-secondary" id="btn-about">ℹ ABOUT THIS PROJECT</button>
+            </div>
+            <div class="menu-footer">
+                <span>AI Enemy · LSTM Neural Network · Real-Time Strategy · Historical Battles</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div id="screen-loading" class="screen">
+        <div class="loading-content">
+            <div class="loading-logo">VIETNAM: THE LONG WAR</div>
+            <div class="loading-subtitle">Initializing Combat Systems</div>
+            <div class="loading-bar-outer">
+                <div class="loading-bar-inner" id="loading-bar"></div>
+            </div>
+            <div class="loading-status" id="loading-status">Loading neural network weights...</div>
+            <div class="loading-facts" id="loading-fact"></div>
+        </div>
+    </div>
+
+    <!-- BATTLE BRIEFING -->
+    <div id="screen-briefing" class="screen">
+        <div class="briefing-wrapper">
+            <div class="briefing-header">
+                <div class="top-secret-band">TOP SECRET // OPERATIONAL ORDER</div>
+                <div class="briefing-title-row">
+                    <div>
+                        <div class="briefing-op-name" id="brief-op-name">OPERATION ALPHA</div>
+                        <div class="briefing-battle-name" id="brief-battle-name">Battle Name</div>
+                    </div>
+                    <div class="briefing-date-block">
+                        <div class="brief-date-label">DATE</div>
+                        <div class="briefing-date" id="brief-date">00 JAN 0000</div>
+                    </div>
+                </div>
+            </div>
+            <div class="briefing-body">
+                <div class="briefing-left">
+                    <div class="brief-section">
+                        <div class="brief-section-header">SITUATION</div>
+                        <p id="brief-situation">Loading...</p>
+                    </div>
+                    <div class="brief-section">
+                        <div class="brief-section-header">HISTORICAL CONTEXT</div>
+                        <p id="brief-history">Loading...</p>
+                    </div>
+                    <div class="brief-section">
+                        <div class="brief-section-header">INTELLIGENCE ESTIMATE</div>
+                        <p id="brief-intel">Loading...</p>
+                    </div>
+                </div>
+                <div class="briefing-right">
+                    <div class="brief-section">
+                        <div class="brief-section-header">MISSION OBJECTIVES</div>
+                        <ul id="brief-objectives"></ul>
+                    </div>
+                    <div class="brief-section">
+                        <div class="brief-section-header">AVAILABLE ASSETS</div>
+                        <div id="brief-assets"></div>
+                    </div>
+                    <div class="brief-section">
+                        <div class="brief-section-header">TERRAIN ANALYSIS</div>
+                        <p id="brief-terrain">Loading...</p>
+                    </div>
+                    <div class="brief-section ai-note">
+                        <div class="brief-section-header">⚠ AI THREAT ASSESSMENT</div>
+                        <p id="brief-ai-note">Enemy has adapted from previous engagements. Expect updated tactics.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="briefing-footer">
+                <div class="brief-battle-num" id="brief-battle-num">Engagement 1 of 8</div>
+                <div class="brief-buttons">
+                    <button class="btn-secondary" id="btn-brief-back">◀ STAND DOWN</button>
+                    <button class="btn-primary" id="btn-deploy">DEPLOY FORCES ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME SCREEN -->
+    <div id="screen-game" class="screen">
+        <!-- TOP HUD -->
+        <div id="hud-top">
+            <div class="hud-block" id="hud-mission">
+                <div class="hud-label">OPERATION</div>
+                <div class="hud-val" id="hud-op-name">--</div>
+                <div class="hud-sub" id="hud-battle-date">--</div>
+            </div>
+            <div class="hud-block hud-center">
+                <div class="opinion-container">
+                    <div class="hud-label">PUBLIC OPINION</div>
+                    <div class="opinion-bar-wrap">
+                        <div class="opinion-bar-fill" id="opinion-fill"></div>
+                        <div class="opinion-bar-text" id="opinion-text">100%</div>
+                    </div>
+                    <div class="hud-sub" id="opinion-status">Support: Strong</div>
+                </div>
+            </div>
+            <div class="hud-block">
+                <div class="hud-label">CAMPAIGN SCORE</div>
+                <div class="hud-val" id="hud-campaign-score">0</div>
+            </div>
+            <div class="hud-block">
+                <div class="hud-label">BATTLE TIME</div>
+                <div class="hud-val" id="hud-time">0:00</div>
+            </div>
+            <div class="hud-block">
+                <div class="hud-label">RESOURCES</div>
+                <div class="hud-val" id="hud-resources">100</div>
+            </div>
+            <div class="hud-block">
+                <div class="hud-label">ENEMY KIA</div>
+                <div class="hud-val hud-kills" id="hud-kills">0</div>
+            </div>
+            <div class="hud-block">
+                <div class="hud-label">US CASUALTIES</div>
+                <div class="hud-val hud-cas" id="hud-casualties">0</div>
+            </div>
+            <div class="hud-controls">
+                <button class="ctrl-btn" id="btn-pause" title="Pause/Resume">⏸</button>
+                <button class="ctrl-btn" id="btn-docs" title="View Documents">📋</button>
+                <button class="ctrl-btn" id="btn-intel" title="Intel Report">🔍</button>
+                <button class="ctrl-btn" id="btn-speed" title="Game Speed">1×</button>
+            </div>
+        </div>
+
+        <!-- GAME AREA -->
+        <div id="game-area">
+            <div id="canvas-wrap">
+                <canvas id="gameCanvas"></canvas>
+                <canvas id="overlayCanvas"></canvas>
+                <div id="context-menu" class="hidden">
+                    <div class="ctx-title" id="ctx-title">Actions</div>
+                    <div id="ctx-actions"></div>
+                </div>
+                <div id="tooltip" class="hidden"></div>
+                <div id="coord-crosshair" class="hidden">
+                    <div class="crosshair-v"></div>
+                    <div class="crosshair-h"></div>
+                    <div class="coord-label" id="coord-label">X:0 Y:0</div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div id="right-panel">
+                <div class="panel-section" id="minimap-section">
+                    <div class="panel-header">TACTICAL OVERVIEW</div>
+                    <canvas id="minimapCanvas" width="230" height="153"></canvas>
+                    <div class="minimap-legend">
+                        <span class="legend-us">■ US Forces</span>
+                        <span class="legend-vc">■ Enemy</span>
+                        <span class="legend-obj">◆ Objective</span>
+                    </div>
+                </div>
+
+                <div class="panel-section" id="unit-info-section">
+                    <div class="panel-header">SELECTED UNIT</div>
+                    <div id="unit-info">
+                        <div class="no-select-msg">Click a unit to inspect</div>
+                    </div>
+                </div>
+
+                <div class="panel-section" id="ai-section">
+                    <div class="panel-header">ENEMY AI — LSTM NETWORK</div>
+                    <canvas id="lstmCanvas" width="230" height="140"></canvas>
+                    <div class="ai-stats">
+                        <div class="ai-stat-row">
+                            <span class="ai-stat-label">Threat Level</span>
+                            <div class="ai-bar-wrap">
+                                <div class="ai-bar-fill threat-bar" id="threat-bar"></div>
+                            </div>
+                        </div>
+                        <div class="ai-stat-row">
+                            <span class="ai-stat-label">Adaptations</span>
+                            <span class="ai-stat-val" id="ai-adaptations">0</span>
+                        </div>
+                        <div id="ai-current-tactic" class="ai-tactic">Tactic: Observing</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM PANEL -->
+        <div id="bottom-panel">
+            <div id="action-panel">
+                <div class="action-group">
+                    <div class="ag-label">GROUND FORCES</div>
+                    <div class="action-group-row">
+                    <button class="act-btn" data-action="infantry" title="M16 Infantry Squad — balanced, good accuracy">
+                        <div class="act-icon">👥</div>
+                        <div class="act-name">M16 SQUAD</div>
+                        <div class="act-cost">⚡10</div>
+                        <div class="act-cd" id="cd-infantry"></div>
+                    </button>
+                    <button class="act-btn" data-action="m60_gunner" title="M60 Machine Gunner — slow but high fire rate, suppresses enemy">
+                        <div class="act-icon">🔫</div>
+                        <div class="act-name">M60 GUNNER</div>
+                        <div class="act-cost">⚡20</div>
+                        <div class="act-cd" id="cd-m60_gunner"></div>
+                    </button>
+                    <button class="act-btn" data-action="sharpshooter" title="Sharpshooter — extreme range, high damage, very slow fire">
+                        <div class="act-icon">🎯</div>
+                        <div class="act-name">SNIPER</div>
+                        <div class="act-cost">⚡15</div>
+                        <div class="act-cd" id="cd-sharpshooter"></div>
+                    </button>
+                    <button class="act-btn" data-action="grenadier" title="M79 Grenadier — explosive area damage, slow">
+                        <div class="act-icon">💣</div>
+                        <div class="act-name">GRENADIER</div>
+                        <div class="act-cost">⚡18</div>
+                        <div class="act-cd" id="cd-grenadier"></div>
+                    </button>
+                    <button class="act-btn" data-action="artillery" title="M102 Howitzer (requires coordinates)">
+                        <div class="act-icon">💥</div>
+                        <div class="act-name">ARTILLERY</div>
+                        <div class="act-cost">⚡25</div>
+                        <div class="act-cd" id="cd-artillery"></div>
+                    </button>
+                    <button class="act-btn" data-action="armor" title="M48 Patton Tank">
+                        <div class="act-icon">🔰</div>
+                        <div class="act-name">ARMOR</div>
+                        <div class="act-cost">⚡40</div>
+                        <div class="act-cd" id="cd-armor"></div>
+                    </button>
+                    </div>
+                </div>
+                <div class="action-group">
+                    <div class="ag-label">AIR SUPPORT</div>
+                    <div class="action-group-row">
+                    <button class="act-btn" data-action="airstrike" title="F-105 Thunderchief strike">
+                        <div class="act-icon">✈️</div>
+                        <div class="act-name">AIR STRIKE</div>
+                        <div class="act-cost">⚡50</div>
+                        <div class="act-cd" id="cd-airstrike"></div>
+                    </button>
+                    <button class="act-btn" data-action="helicopter" title="UH-1 Huey gunship">
+                        <div class="act-icon">🚁</div>
+                        <div class="act-name">HELICOPTER</div>
+                        <div class="act-cost">⚡30</div>
+                        <div class="act-cd" id="cd-helicopter"></div>
+                    </button>
+                    <button class="act-btn" data-action="napalm" title="Napalm incendiary strike">
+                        <div class="act-icon">🔥</div>
+                        <div class="act-name">NAPALM</div>
+                        <div class="act-cost">⚡35</div>
+                        <div class="act-cd" id="cd-napalm"></div>
+                    </button>
+                    </div>
+                </div>
+                <div class="action-group">
+                    <div class="ag-label">SPECIAL OPS</div>
+                    <div class="action-group-row">
+                    <button class="act-btn" data-action="recon" title="Recon team — reveals fog, gives coordinates">
+                        <div class="act-icon">🔭</div>
+                        <div class="act-name">RECON</div>
+                        <div class="act-cost" id="recon-count">3 left</div>
+                        <div class="act-cd" id="cd-recon"></div>
+                    </button>
+                    <button class="act-btn" data-action="agent_orange" title="Agent Orange defoliant — clears jungle">
+                        <div class="act-icon">☣️</div>
+                        <div class="act-name">AGENT ORANGE</div>
+                        <div class="act-cost">⚡35</div>
+                        <div class="act-cd" id="cd-agent_orange"></div>
+                    </button>
+                    <button class="act-btn" data-action="naval" title="Naval bombardment (coastal only)">
+                        <div class="act-icon">⚓</div>
+                        <div class="act-name">NAVAL</div>
+                        <div class="act-cost">⚡45</div>
+                        <div class="act-cd" id="cd-naval"></div>
+                    </button>
+                    </div>
+                </div>
+            </div>
+            <div id="event-log">
+                <div class="panel-header">BATTLE LOG</div>
+                <div id="log-entries"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POST BATTLE SCREEN -->
+    <div id="screen-post-battle" class="screen">
+        <div class="post-battle-wrap">
+            <div class="pb-header">
+                <div class="pb-result" id="pb-result">OBJECTIVE SECURED</div>
+                <div class="pb-battle-name" id="pb-battle-name">Battle Name</div>
+                <div class="pb-date" id="pb-date">Date</div>
+            </div>
+            <div class="pb-body">
+                <div class="pb-left">
+                    <div class="pb-section">
+                        <h3>BATTLE STATISTICS</h3>
+                        <div id="pb-stats"></div>
+                    </div>
+                    <div class="pb-section">
+                        <h3>HISTORICAL OUTCOME</h3>
+                        <p id="pb-historical"></p>
+                    </div>
+                </div>
+                <div class="pb-right">
+                    <div class="pb-section ablation-section">
+                        <h3>LSTM ABLATION ANALYSIS</h3>
+                        <p class="ablation-desc">Neural network computed contribution of each factor to the battle outcome:</p>
+                        <div id="ablation-bars"></div>
+                        <div class="ablation-note" id="ablation-note"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="pb-footer">
+                <button class="btn-secondary" id="btn-pb-docs">VIEW DOCUMENTS</button>
+                <button class="btn-primary" id="btn-pb-next">NEXT ENGAGEMENT ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOCUMENTS MODAL -->
+    <div id="modal-docs" class="modal hidden">
+        <div class="modal-box docs-box">
+            <div class="modal-hdr">
+                <span>DECLASSIFIED DOCUMENTS — VIETNAM WAR</span>
+                <button class="modal-close" id="close-docs">✕</button>
+            </div>
+            <div class="docs-layout">
+                <div class="docs-sidebar" id="docs-sidebar"></div>
+                <div class="docs-viewer" id="docs-viewer">
+                    <div class="doc-select-msg">Select a document to read</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANTI-WAR EVENT MODAL -->
+    <div id="modal-antiwar" class="modal hidden">
+        <div class="modal-box antiwar-box">
+            <div class="news-ticker">⚡ BREAKING NEWS ⚡</div>
+            <div class="modal-hdr antiwar-hdr">
+                <span id="antiwar-headline">Headline</span>
+            </div>
+            <div class="antiwar-body">
+                <div class="antiwar-art" id="antiwar-art"></div>
+                <div class="antiwar-text">
+                    <p id="antiwar-story"></p>
+                    <div class="antiwar-date" id="antiwar-date"></div>
+                </div>
+            </div>
+            <div class="antiwar-footer">
+                <div class="opinion-impact">
+                    <span class="impact-label">CAMPAIGN SCORE PENALTY:</span>
+                    <span class="impact-val" id="antiwar-penalty">-500 pts</span>
+                </div>
+                <div class="opinion-impact">
+                    <span class="impact-label">PUBLIC OPINION:</span>
+                    <span class="impact-val negative" id="antiwar-opinion">-10%</span>
+                </div>
+                <button class="btn-primary" id="close-antiwar">ACKNOWLEDGE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INTEL REPORT MODAL -->
+    <div id="modal-intel" class="modal hidden">
+        <div class="modal-box intel-box">
+            <div class="modal-hdr">
+                <span>INTELLIGENCE REPORT — LSTM ANALYSIS</span>
+                <button class="modal-close" id="close-intel">✕</button>
+            </div>
+            <div id="intel-content"></div>
+        </div>
+    </div>
+
+    <!-- TUTORIAL MODAL -->
+    <div id="modal-tutorial" class="modal hidden">
+        <div class="modal-box tutorial-box">
+            <div class="modal-hdr">
+                <span id="tutorial-step-label">HOW TO PLAY — STEP 1 OF 7</span>
+                <button class="modal-close" id="close-tutorial">✕</button>
+            </div>
+            <div class="tutorial-body">
+                <div class="tutorial-icon-wrap" id="tutorial-icon">📚</div>
+                <div class="tutorial-content">
+                    <h2 id="tutorial-title">Welcome</h2>
+                    <div id="tutorial-text"></div>
+                </div>
+            </div>
+            <div class="tutorial-footer">
+                <div class="tutorial-dots" id="tutorial-dots"></div>
+                <div class="tutorial-nav">
+                    <button class="btn-secondary" id="btn-tut-prev">◀ BACK</button>
+                    <button class="btn-primary" id="btn-tut-next">NEXT ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT MODAL -->
+    <div id="modal-about" class="modal hidden">
+        <div class="modal-box about-box">
+            <div class="modal-hdr">
+                <span>ABOUT THIS PROJECT</span>
+                <button class="modal-close" id="close-about">✕</button>
+            </div>
+            <div class="about-content">
+                <h3>Vietnam: The Long War</h3>
+                <p>An AP US History strategic simulation covering the Vietnam War from 1963–1975.</p>
+                <h4>LSTM Neural Network</h4>
+                <p>The enemy AI uses a Long Short-Term Memory (LSTM) recurrent neural network that learns from every action you take. Each game event (artillery strike, recon deployment, troop movement) becomes a node in the network. The AI adapts its tactics across battles.</p>
+                <h4>Ablation Analysis</h4>
+                <p>After each battle, the LSTM performs an ablation study — systematically removing each input variable to determine its contribution to the outcome. This shows which decisions actually mattered.</p>
+                <h4>Historical Accuracy</h4>
+                <p>All 8 battles are in true historical order. Events, unit capabilities, terrain, and political impacts are based on historical records.</p>
+                <h4>Public Opinion System</h4>
+                <p>Your choices affect domestic support. Civilian casualties, use of chemical weapons, and costly battles erode public opinion. When thresholds are crossed, real historical anti-war events are triggered.</p>
+                <button class="btn-primary" id="close-about-btn">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/lstm.js"></script>
+<script src="js/battles.js"></script>
+<script src="js/map.js"></script>
+<script src="js/units.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
