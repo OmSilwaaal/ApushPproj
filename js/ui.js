@@ -223,9 +223,9 @@ const UI = (() => {
 
     const behaviorHtml = unit.faction === 'us' ? `
       <div class="uc-behavior-row">
-        <button class="uc-bmode-btn${bm==='GUARD'  ?' active':''}" onclick="GAME_setBehavior('GUARD')"   title="Hold position">🛡 Guard</button>
-        <button class="uc-bmode-btn${bm==='PATROL' ?' active':''}" onclick="GAME_setBehavior('PATROL')"  title="Patrol waypoints">↩ Patrol</button>
-        <button class="uc-bmode-btn${bm==='EXPLORE'?' active':''}" onclick="GAME_setBehavior('EXPLORE')" title="Explore">🔭 Explore</button>
+        <button class="uc-bmode-btn${bm==='GUARD'  ?' active':''}" onclick="GAME_setBehavior('GUARD')"   title="Hold position">GUARD</button>
+        <button class="uc-bmode-btn${bm==='PATROL' ?' active':''}" onclick="GAME_setBehavior('PATROL')"  title="Patrol waypoints">PATROL</button>
+        <button class="uc-bmode-btn${bm==='EXPLORE'?' active':''}" onclick="GAME_setBehavior('EXPLORE')" title="Explore">EXPLORE</button>
       </div>
       ${bm === 'PATROL' ? `<button class="uc-patrol-add-btn" onclick="GAME_startPatrolMark()">+ Mark Patrol Point (${info.patrolCount} set)</button>` : ''}
       ${bm === 'PATROL' && info.patrolCount > 0 ? `<button class="uc-patrol-add-btn uc-patrol-clear" onclick="GAME_clearPatrol()">✕ Clear Waypoints</button>` : ''}

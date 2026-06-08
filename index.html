@@ -19,9 +19,9 @@
             <p class="menu-subtitle">An AP US History Strategic Simulation · 1963 – 1975</p>
             <div class="menu-buttons">
                 <button class="btn-primary" id="btn-start-campaign">▶ BEGIN CAMPAIGN</button>
-                <button class="btn-secondary" id="btn-tutorial">❓ HOW TO PLAY</button>
-                <button class="btn-secondary" id="btn-historical-docs">📋 HISTORICAL DOCUMENTS</button>
-                <button class="btn-secondary" id="btn-about">ℹ ABOUT THIS PROJECT</button>
+                <button class="btn-secondary" id="btn-tutorial">HOW TO PLAY</button>
+                <button class="btn-secondary" id="btn-historical-docs">HISTORICAL DOCUMENTS</button>
+                <button class="btn-secondary" id="btn-about">ABOUT THIS PROJECT</button>
             </div>
             <div class="menu-footer">
                 <span>AI Enemy · LSTM Neural Network · Real-Time Strategy · Historical Battles</span>
@@ -142,9 +142,9 @@
                 <div class="hud-val hud-cas" id="hud-casualties">0</div>
             </div>
             <div class="hud-controls">
-                <button class="ctrl-btn" id="btn-pause" title="Pause/Resume">⏸</button>
-                <button class="ctrl-btn" id="btn-docs" title="View Documents">📋</button>
-                <button class="ctrl-btn" id="btn-intel" title="Intel Report">🔍</button>
+                <button class="ctrl-btn" id="btn-pause" title="Pause/Resume">II</button>
+                <button class="ctrl-btn" id="btn-docs" title="View Documents">DOCS</button>
+                <button class="ctrl-btn" id="btn-intel" title="Intel Report">INTEL</button>
                 <button class="ctrl-btn" id="btn-speed" title="Game Speed">1×</button>
             </div>
         </div>
@@ -211,40 +211,40 @@
                 <div class="action-group">
                     <div class="ag-label">GROUND FORCES</div>
                     <div class="action-group-row">
-                    <button class="act-btn" data-action="infantry" title="M16 Infantry Squad — balanced, good accuracy">
-                        <div class="act-icon">👥</div>
-                        <div class="act-name">M16 SQUAD</div>
-                        <div class="act-cost">⚡10</div>
+                    <button class="act-btn" data-action="infantry" title="Rifle Squad (M16A1) — standard infantry, balanced accuracy">
+                        <div class="act-icon">INF</div>
+                        <div class="act-name">RIFLE SQUAD</div>
+                        <div class="act-cost">10 pts</div>
                         <div class="act-cd" id="cd-infantry"></div>
                     </button>
-                    <button class="act-btn" data-action="m60_gunner" title="M60 Machine Gunner — slow but high fire rate, suppresses enemy">
-                        <div class="act-icon">🔫</div>
+                    <button class="act-btn" data-action="m60_gunner" title="M60 Machine Gunner — high rate of fire, suppresses enemy movement">
+                        <div class="act-icon">MG</div>
                         <div class="act-name">M60 GUNNER</div>
-                        <div class="act-cost">⚡20</div>
+                        <div class="act-cost">20 pts</div>
                         <div class="act-cd" id="cd-m60_gunner"></div>
                     </button>
-                    <button class="act-btn" data-action="sharpshooter" title="Sharpshooter — extreme range, high damage, very slow fire">
-                        <div class="act-icon">🎯</div>
-                        <div class="act-name">SNIPER</div>
-                        <div class="act-cost">⚡15</div>
+                    <button class="act-btn" data-action="sharpshooter" title="Scout Sniper (XM21) — extreme range, single high-damage shot">
+                        <div class="act-icon">SN</div>
+                        <div class="act-name">SCOUT SNIPER</div>
+                        <div class="act-cost">15 pts</div>
                         <div class="act-cd" id="cd-sharpshooter"></div>
                     </button>
-                    <button class="act-btn" data-action="grenadier" title="M79 Grenadier — explosive area damage, slow">
-                        <div class="act-icon">💣</div>
-                        <div class="act-name">GRENADIER</div>
-                        <div class="act-cost">⚡18</div>
+                    <button class="act-btn" data-action="grenadier" title="M79 Grenadier — area explosive damage, effective vs. groups">
+                        <div class="act-icon">GRN</div>
+                        <div class="act-name">M79 GRENADIER</div>
+                        <div class="act-cost">18 pts</div>
                         <div class="act-cd" id="cd-grenadier"></div>
                     </button>
-                    <button class="act-btn" data-action="artillery" title="M102 Howitzer (requires coordinates)">
-                        <div class="act-icon">💥</div>
-                        <div class="act-name">ARTILLERY</div>
-                        <div class="act-cost">⚡25</div>
+                    <button class="act-btn" data-action="artillery" title="M102 Howitzer — requires LRRP coordinates first">
+                        <div class="act-icon">ARTY</div>
+                        <div class="act-name">M102 HOWITZER</div>
+                        <div class="act-cost">25 pts</div>
                         <div class="act-cd" id="cd-artillery"></div>
                     </button>
-                    <button class="act-btn" data-action="armor" title="M48 Patton Tank">
-                        <div class="act-icon">🔰</div>
-                        <div class="act-name">ARMOR</div>
-                        <div class="act-cost">⚡40</div>
+                    <button class="act-btn" data-action="armor" title="M48A3 Patton Tank — heavy armor and firepower">
+                        <div class="act-icon">ARM</div>
+                        <div class="act-name">M48 PATTON</div>
+                        <div class="act-cost">40 pts</div>
                         <div class="act-cd" id="cd-armor"></div>
                     </button>
                     </div>
@@ -252,22 +252,22 @@
                 <div class="action-group">
                     <div class="ag-label">AIR SUPPORT</div>
                     <div class="action-group-row">
-                    <button class="act-btn" data-action="airstrike" title="F-105 Thunderchief strike">
-                        <div class="act-icon">✈️</div>
-                        <div class="act-name">AIR STRIKE</div>
-                        <div class="act-cost">⚡50</div>
+                    <button class="act-btn" data-action="airstrike" title="F-105D Thunderchief — precision air strike">
+                        <div class="act-icon">CAS</div>
+                        <div class="act-name">F-105 STRIKE</div>
+                        <div class="act-cost">50 pts</div>
                         <div class="act-cd" id="cd-airstrike"></div>
                     </button>
-                    <button class="act-btn" data-action="helicopter" title="UH-1 Huey gunship">
-                        <div class="act-icon">🚁</div>
-                        <div class="act-name">HELICOPTER</div>
-                        <div class="act-cost">⚡30</div>
+                    <button class="act-btn" data-action="helicopter" title="UH-1C Huey Gunship — fast air-mobile fire support">
+                        <div class="act-icon">HEL</div>
+                        <div class="act-name">UH-1 HUEY</div>
+                        <div class="act-cost">30 pts</div>
                         <div class="act-cd" id="cd-helicopter"></div>
                     </button>
-                    <button class="act-btn" data-action="napalm" title="Napalm incendiary strike">
-                        <div class="act-icon">🔥</div>
+                    <button class="act-btn" data-action="napalm" title="AN/M47 Napalm — area incendiary, burns terrain">
+                        <div class="act-icon">NAP</div>
                         <div class="act-name">NAPALM</div>
-                        <div class="act-cost">⚡35</div>
+                        <div class="act-cost">35 pts</div>
                         <div class="act-cd" id="cd-napalm"></div>
                     </button>
                     </div>
@@ -275,22 +275,22 @@
                 <div class="action-group">
                     <div class="ag-label">SPECIAL OPS</div>
                     <div class="action-group-row">
-                    <button class="act-btn" data-action="recon" title="Recon team — reveals fog, gives coordinates">
-                        <div class="act-icon">🔭</div>
-                        <div class="act-name">RECON</div>
+                    <button class="act-btn" data-action="recon" title="LRRP Team — reveals fog of war, unlocks artillery coordinates">
+                        <div class="act-icon">RCN</div>
+                        <div class="act-name">LRRP RECON</div>
                         <div class="act-cost" id="recon-count">3 left</div>
                         <div class="act-cd" id="cd-recon"></div>
                     </button>
-                    <button class="act-btn" data-action="agent_orange" title="Agent Orange defoliant — clears jungle">
-                        <div class="act-icon">☣️</div>
+                    <button class="act-btn" data-action="agent_orange" title="Agent Orange (Ranch Hand) — defoliates jungle, severe opinion penalty">
+                        <div class="act-icon">AO</div>
                         <div class="act-name">AGENT ORANGE</div>
-                        <div class="act-cost">⚡35</div>
+                        <div class="act-cost">35 pts</div>
                         <div class="act-cd" id="cd-agent_orange"></div>
                     </button>
-                    <button class="act-btn" data-action="naval" title="Naval bombardment (coastal only)">
-                        <div class="act-icon">⚓</div>
-                        <div class="act-name">NAVAL</div>
-                        <div class="act-cost">⚡45</div>
+                    <button class="act-btn" data-action="naval" title="Naval Gunfire (7th Fleet) — offshore bombardment">
+                        <div class="act-icon">NGF</div>
+                        <div class="act-name">NAVAL GUNFIRE</div>
+                        <div class="act-cost">45 pts</div>
                         <div class="act-cd" id="cd-naval"></div>
                     </button>
                     </div>

@@ -503,7 +503,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .act-btn:hover { background: var(--bg-hover); border-color: var(--border-bright); }
 .act-btn.selected { background: var(--green-dim); border-color: var(--green-bright); box-shadow: var(--glow-green); }
 .act-btn.on-cooldown { opacity: 0.5; cursor: not-allowed; }
-.act-icon { font-size: 18px; }
+.act-icon {
+  font-size: 11px; font-family: 'Oswald', sans-serif; font-weight: 700;
+  color: var(--amber-bright); letter-spacing: 1px;
+}
 .act-name { font-size: 8px; letter-spacing: 1px; color: var(--text-dim); text-align: center; line-height: 1.2; }
 .act-cost { font-size: 9px; color: var(--amber); }
 .act-cd {
