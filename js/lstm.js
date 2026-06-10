@@ -1,314 +1,246 @@
 /* ============================================================
-   LSTM — Long Short-Term Memory Neural Network
-   The enemy AI brain. Learns from every player action.
+   ENEMY DOCTRINE — Historically-grounded enemy behavior selection
+
+   Replaces any notion of "AI learning" with authentic VC/NVA
+   tactical doctrine drawn from documented battle accounts.
+   The enemy behaves as they actually did — not as a machine learner.
    ============================================================ */
 const LSTM = (() => {
 
-  const IN  = CONFIG.LSTM.INPUT_SIZE;
-  const H   = CONFIG.LSTM.HIDDEN_SIZE;
-  const OUT = CONFIG.LSTM.OUTPUT_SIZE;
-  const LR  = CONFIG.LSTM.LR;
+  /* Behavior index constants (unchanged — used throughout ai.js) */
+  const B_HIDE     = 0;
+  const B_AMBUSH   = 1;
+  const B_DISPERSE = 2;
+  const B_MORTAR   = 3;
+  const B_COUNTER  = 4;
 
-  /* ── LSTM LAYER ── */
-  class LSTMLayer {
-    constructor(inSize, hidSize) {
-      this.in  = inSize;
-      this.h   = hidSize;
-      const sz = inSize + hidSize;
-      /* 4 gates: forget, input, cell, output */
-      this.Wf = Utils.randMatrix(hidSize, sz,   0.08);
-      this.Wi = Utils.randMatrix(hidSize, sz,   0.08);
-      this.Wg = Utils.randMatrix(hidSize, sz,   0.08);
-      this.Wo = Utils.randMatrix(hidSize, sz,   0.08);
-      this.bf = Utils.zeros(hidSize);
-      this.bi = Utils.zeros(hidSize);
-      this.bg = Utils.zeros(hidSize);
-      this.bo = Utils.zeros(hidSize);
+  const OUTPUT_LABELS = [
+    'Defensive Hold', 'Ambush / Hit-Run', 'Disperse / Evade',
+    'Indirect Fire', 'Direct Assault'
+  ];
+  const INPUT_LABELS = [
+    'Artillery Used','Air Strikes','Napalm Used','Recon Deployed',
+    'Infantry Deployed','Armor Deployed','Helicopters','Chemical Agents',
+    'Naval Strikes','Enemy Contacts','US Casualties','Time Pressure'
+  ];
 
-      /* Bias forget gate towards 1 for stability */
-      for (let i = 0; i < hidSize; i++) this.bf[i] = 1.0;
+  /*
+   * Historical doctrine profiles — one per battle.
+   * Weights express the tactical emphasis the VC/NVA actually applied
+   * in each engagement, based on after-action reports and historical accounts.
+   *   [B_HIDE, B_AMBUSH, B_DISPERSE, B_MORTAR, B_COUNTER]
+   */
+  const BATTLE_DOCTRINES = [
+    /* 0 — Ap Bac, Jan 1963
+       VC 514th Bn held prepared positions along irrigation dikes and stood
+       and fought — an unusual decision that exposed ARVN's command failures. */
+    {
+      name: 'Guerrilla Defense',
+      description: 'Prepared positions along irrigation dikes. Disciplined fire held until US helicopters were within range — the VC stood and fought rather than flee.',
+      historicalNote: '"This is a miserable damn performance, just like it always is." — Col. John Paul Vann, US Army Advisor, after Ap Bac',
+      weights: [0.25, 0.35, 0.08, 0.22, 0.10],
+    },
+    /* 1 — Ia Drang, Nov 1965
+       NVA Commander Nguyen Huu An ordered troops to "grab the belt buckle" —
+       close to within 30m of US lines so artillery and air power could not fire. */
+    {
+      name: '"Grab the Belt" Assault',
+      description: 'Close assault to within 30 meters of US positions — the "hug" tactic. At that range, American air power and artillery risk hitting their own men.',
+      historicalNote: '"We must get so close that their artillery cannot fire without killing their own men." — NVA Cmdr. Nguyen Huu An, Ia Drang Valley, 1965',
+      weights: [0.08, 0.18, 0.12, 0.15, 0.47],
+    },
+    /* 2 — Junction City, Feb–May 1967
+       COSVN dissolved into an extensive tunnel and bunker system and
+       slipped across the Cambodian border — a recurring US strategic failure. */
+    {
+      name: 'Tunnel Network Defense',
+      description: 'Disperse into underground tunnels and bunkers. Fight in short bursts then withdraw. COSVN will slip into Cambodia before encirclement is complete.',
+      historicalNote: 'Despite 22 US and 4 ARVN battalions, COSVN headquarters escaped into Cambodia — demonstrating the limits of conventional operations against a tunnel-based enemy.',
+      weights: [0.42, 0.28, 0.18, 0.08, 0.04],
+    },
+    /* 3 — Khe Sanh, Jan–Jul 1968
+       NVA modeled the siege on Dien Bien Phu (1954): trench-digging toward
+       the perimeter, coordinated mortar and artillery from surrounding hills. */
+    {
+      name: 'Siege & Encirclement',
+      description: 'Dig trenches toward the perimeter. Rain mortars from the surrounding hills. Starve the base of supplies and deny the airstrip.',
+      historicalNote: 'Gen. Vo Nguyen Giap modeled Khe Sanh on Dien Bien Phu, where the same tactics destroyed the French army in Vietnam in 1954.',
+      weights: [0.12, 0.10, 0.15, 0.43, 0.20],
+    },
+    /* 4 — Battle of Hue, Jan–Mar 1968
+       NVA fortified every building in the Citadel. The ancient walls absorbed
+       artillery. Marines had to retrain for urban combat on the spot. */
+    {
+      name: 'Urban Strongpoint Defense',
+      description: 'Fortify every building. Fight room by room. The Citadel\'s walls absorb artillery and napalm. Make the Americans pay for every meter.',
+      historicalNote: 'US Marines had never trained for urban combat at this scale. The Battle of Hue was the longest and bloodiest engagement of the Tet Offensive.',
+      weights: [0.18, 0.22, 0.10, 0.15, 0.35],
+    },
+    /* 5 — Lam Son 719, Feb–Mar 1971
+       NVA deployed Soviet-supplied T-54 tanks alongside massed infantry —
+       the first time ARVN faced large-scale armor. AA guns grounded helicopters. */
+    {
+      name: 'Combined Arms Counterattack',
+      description: 'Coordinate tank columns with infantry. Blanket the area with anti-aircraft fire to neutralize the helicopter advantage. The ARVN cannot stand against armor.',
+      historicalNote: 'Images of ARVN soldiers clinging to helicopter skids to escape became the defining image of Lam Son 719 — proving Vietnamization had failed.',
+      weights: [0.05, 0.15, 0.08, 0.27, 0.45],
+    },
+    /* 6 — Easter Offensive / An Loc, Apr–Jun 1972
+       Three NVA divisions executed a Soviet-style siege: massive artillery
+       preparation followed by tank-infantry assault. B-52s struck within 1km
+       of friendly lines — the closest strategic bombing in US history. */
+    {
+      name: 'Conventional Siege',
+      description: 'Three-division siege. Mass artillery preparation, then armor-infantry assault. Surround and strangle. Do not allow resupply on Route 13.',
+      historicalNote: 'B-52 Arc Light strikes fell within 1 kilometer of friendly lines at An Loc — the closest B-52 strikes to friendly troops in the entire war.',
+      weights: [0.05, 0.12, 0.08, 0.32, 0.43],
+    },
+    /* 7 — Fall of Saigon, Apr 1975
+       No more concealment needed. NVA Tank No. 843 drove openly down the
+       main boulevard and crashed through the Presidential Palace gates at 11:30 AM. */
+    {
+      name: 'Final Offensive',
+      description: 'No more hiding. Drive armor openly down the boulevards. The war is over — it is only a question of how many are evacuated before the gates fall.',
+      historicalNote: 'NVA Tank No. 843 crashed through the gates of the Presidential Palace at 11:30 AM, April 30, 1975. The last American helicopter left the embassy roof at 7:53 AM.',
+      weights: [0.03, 0.08, 0.04, 0.28, 0.57],
+    },
+  ];
 
-      /* Hidden + cell state */
-      this.hState = Utils.zeros(hidSize);
-      this.cState = Utils.zeros(hidSize);
+  /* Historical factors used in post-battle analysis (replacing "ablation") */
+  const HISTORICAL_FACTORS = [
+    { label: 'Air Power Effectiveness',    color: '#4a8a2a' },
+    { label: 'Terrain Advantage',          color: '#6abf3a' },
+    { label: 'Supply Line Integrity',      color: '#c8820a' },
+    { label: 'Troop Morale',               color: '#f5a623' },
+    { label: 'Intelligence Quality',       color: '#aa2010' },
+    { label: 'Command & Control',          color: '#e03020' },
+    { label: 'Domestic Public Support',    color: '#2244aa' },
+    { label: 'ARVN Cooperation',           color: '#4488ff' },
+    { label: 'Civilian Loyalty (Locals)',  color: '#8844aa' },
+    { label: 'Ho Chi Minh Trail Supply',   color: '#cc66ff' },
+    { label: 'Media / Press Coverage',     color: '#2a8a6a' },
+    { label: 'Congressional Authorization',color: '#44ffcc' },
+  ];
 
-      /* Save for learning */
-      this._lastF = Utils.zeros(hidSize);
-      this._lastI = Utils.zeros(hidSize);
-      this._lastG = Utils.zeros(hidSize);
-      this._lastO = Utils.zeros(hidSize);
-      this._lastCombined = null;
-    }
+  /* Per-battle historical factor weights — based on what historians
+     identify as decisive in each engagement. */
+  const BATTLE_FACTOR_WEIGHTS = [
+    /* Ap Bac    */ [0.12, 0.18, 0.08, 0.20, 0.15, 0.12, 0.05, 0.10, 0.00, 0.00, 0.00, 0.00],
+    /* Ia Drang  */ [0.28, 0.15, 0.08, 0.18, 0.12, 0.08, 0.05, 0.06, 0.00, 0.00, 0.00, 0.00],
+    /* Jct City  */ [0.20, 0.12, 0.15, 0.10, 0.18, 0.10, 0.05, 0.10, 0.00, 0.00, 0.00, 0.00],
+    /* Khe Sanh  */ [0.35, 0.20, 0.10, 0.12, 0.08, 0.08, 0.07, 0.00, 0.00, 0.00, 0.00, 0.00],
+    /* Hue       */ [0.15, 0.20, 0.08, 0.12, 0.10, 0.10, 0.15, 0.10, 0.00, 0.00, 0.00, 0.00],
+    /* Lam Son   */ [0.20, 0.18, 0.12, 0.18, 0.08, 0.12, 0.12, 0.00, 0.00, 0.00, 0.00, 0.00],
+    /* An Loc    */ [0.30, 0.12, 0.10, 0.15, 0.08, 0.10, 0.15, 0.00, 0.00, 0.00, 0.00, 0.00],
+    /* Saigon    */ [0.10, 0.08, 0.05, 0.05, 0.05, 0.05, 0.30, 0.05, 0.07, 0.10, 0.10, 0.00],
+  ];
 
-    reset() {
-      this.hState = Utils.zeros(this.h);
-      this.cState = Utils.zeros(this.h);
-    }
+  /* ── STATE ── */
+  let _battleIdx     = 0;
+  let _battlesPlayed = 0;
+  let _lastOutput    = [0.2, 0.2, 0.2, 0.2, 0.2];
+  let _threatLevel   = 0.2;
 
-    forward(x) {
-      const combined = new Float32Array(this.in + this.h);
-      combined.set(x, 0);
-      combined.set(this.hState, this.in);
-
-      const _apS = v => { const a = new Float32Array(v.length); for(let k=0;k<v.length;k++) a[k]=Utils.sigmoid(v[k]); return a; };
-      const _apT = v => { const a = new Float32Array(v.length); for(let k=0;k<v.length;k++) a[k]=Math.tanh(v[k]); return a; };
-      const f = _apS(Utils.matVecMul(this.Wf, combined, this.bf));
-      const i = _apS(Utils.matVecMul(this.Wi, combined, this.bi));
-      const g = _apT(Utils.matVecMul(this.Wg, combined, this.bg));
-      const o = _apS(Utils.matVecMul(this.Wo, combined, this.bo));
-
-      const cNew = new Float32Array(this.h);
-      const hNew = new Float32Array(this.h);
-      for (let j = 0; j < this.h; j++) {
-        cNew[j] = f[j] * this.cState[j] + i[j] * g[j];
-        hNew[j] = o[j] * Math.tanh(cNew[j]);
-      }
-      this.cState = cNew;
-      this.hState = hNew;
-
-      this._lastF = f;
-      this._lastI = i;
-      this._lastG = g;
-      this._lastO = o;
-      this._lastCombined = combined;
-
-      return hNew;
-    }
-
-    /* Simple gradient nudge based on reward signal */
-    nudge(reward) {
-      if (!this._lastCombined) return;
-      const lr = LR * reward;
-      const sz = this.in + this.h;
-      for (let r = 0; r < this.h; r++) {
-        for (let c = 0; c < sz; c++) {
-          const idx = r * sz + c;
-          const x   = this._lastCombined[c];
-          this.Wf.data[idx] += lr * this._lastF[r] * (1-this._lastF[r]) * x * 0.1;
-          this.Wi.data[idx] += lr * this._lastI[r] * (1-this._lastI[r]) * x * 0.1;
-          this.Wg.data[idx] += lr * (1-this._lastG[r]**2) * x * 0.1;
-          this.Wo.data[idx] += lr * this._lastO[r] * (1-this._lastO[r]) * x * 0.1;
-        }
-      }
-    }
-  }
-
-  /* ── FULL NETWORK ── */
-  class LSTMNetwork {
-    constructor() {
-      this.layer1 = new LSTMLayer(IN, H);
-      this.layer2 = new LSTMLayer(H, H);
-      this.Wout   = Utils.randMatrix(OUT, H, 0.1);
-      this.bout   = Utils.zeros(OUT);
-
-      /* Learning history */
-      this.inputHistory  = [];
-      this.outputHistory = [];
-      this.nodeActivations = [];
-      this.adaptationCount = 0;
-      this.threatLevel   = 0.2;
-
-      /* Per-battle accumulator for LSTM input */
-      this._inputAccum   = new Float32Array(IN);
-      this._inputCounts  = new Float32Array(IN);
-      this._tickCount    = 0;
-
-      /* Saved for visualization */
-      this.lastH1 = Utils.zeros(H);
-      this.lastH2 = Utils.zeros(H);
-      this.lastOutput = Utils.zeros(OUT);
-      this.lastInput  = Utils.zeros(IN);
-    }
-
-    /* Build input vector from game state snapshot */
-    buildInput(gameState) {
-      const gs = gameState;
-      const maxVal = [20, 10, 5, 5, 30, 10, 10, 3, 5, 50, 40, 600];
-      return new Float32Array([
-        Utils.clamp(gs.artilleryUsed  / maxVal[0], 0, 1),
-        Utils.clamp(gs.airStrikesUsed / maxVal[1], 0, 1),
-        Utils.clamp(gs.napalmUsed     / maxVal[2], 0, 1),
-        Utils.clamp(gs.reconDeployed  / maxVal[3], 0, 1),
-        Utils.clamp(gs.infantryDeploy / maxVal[4], 0, 1),
-        Utils.clamp(gs.armorDeployed  / maxVal[5], 0, 1),
-        Utils.clamp(gs.heliDeployed   / maxVal[6], 0, 1),
-        Utils.clamp(gs.chemUsed       / maxVal[7], 0, 1),
-        Utils.clamp(gs.navalUsed      / maxVal[8], 0, 1),
-        Utils.clamp(gs.enemyContacts  / maxVal[9], 0, 1),
-        Utils.clamp(gs.usCasualties   / maxVal[10],0, 1),
-        Utils.clamp(gs.elapsed        / maxVal[11],0, 1),
-      ]);
-    }
-
-    /* Forward pass — returns output probabilities */
-    tick(gameState) {
-      const input = this.buildInput(gameState);
-      this.lastInput = input;
-
-      const h1 = this.layer1.forward(input);
-      const h2 = this.layer2.forward(h1);
-
-      const rawOut = Utils.matVecMul(this.Wout, h2, this.bout);
-      const output = Utils.softmax(Array.from(rawOut));
-
-      this.lastH1 = h1;
-      this.lastH2 = h2;
-      this.lastOutput = output;
-
-      /* Update threat level */
-      this.threatLevel = Utils.clamp(
-        0.2 + output[1] * 0.4 + output[4] * 0.4 + this.adaptationCount * 0.02,
-        0, 1
-      );
-
-      /* Store history for ablation */
-      this.inputHistory.push(Array.from(input));
-      this.outputHistory.push([...output]);
-      this.nodeActivations.push(Array.from(h2.slice(0, 8)));
-
-      /* Cap history to last 200 ticks */
-      if (this.inputHistory.length > 200) {
-        this.inputHistory.shift();
-        this.outputHistory.shift();
-        this.nodeActivations.shift();
-      }
-
-      this._tickCount++;
-      return output;
-    }
-
-    /* Called after each battle — reward = 1 (VC won) or -1 (US won) */
-    learn(vcWon, battleStats) {
-      const reward = vcWon ? 1.0 : -0.8;
-      this.layer1.nudge(reward);
-      this.layer2.nudge(reward);
-
-      /* Nudge output weights */
-      const lr = LR * reward;
-      for (let r = 0; r < OUT; r++) {
-        for (let c = 0; c < H; c++) {
-          this.Wout.data[r * H + c] += lr * this.lastH2[c] * this.lastOutput[r] * 0.05;
-        }
-      }
-
-      this.adaptationCount++;
-    }
-
-    /* Reset hidden state between battles (but KEEP weights) */
-    resetState() {
-      this.layer1.reset();
-      this.layer2.reset();
-      this._inputAccum.fill(0);
-      this._inputCounts.fill(0);
-      this._tickCount = 0;
-    }
-
-    /* ── ABLATION STUDY ──
-       For each input, zero it out in history and measure output change.
-       Returns array of {label, contribution, color} sorted descending. */
-    ablationTest() {
-      if (this.inputHistory.length < 2) {
-        return CONFIG.LSTM.INPUT_LABELS.map((label, i) => ({
-          label,
-          contribution: Math.random() * 0.3 + 0.02,
-          color: _ablationColor(i),
-        }));
-      }
-
-      /* Baseline: avg output entropy over history */
-      const baselineEntropy = this._avgEntropy(this.outputHistory);
-
-      const contributions = [];
-      for (let dim = 0; dim < IN; dim++) {
-        /* Temporarily zero this dimension */
-        const modifiedOutputs = [];
-        this._tempReset();
-
-        for (let t = 0; t < this.inputHistory.length; t++) {
-          const inp = [...this.inputHistory[t]];
-          inp[dim] = 0;
-          const h1 = this.layer1.forward(new Float32Array(inp));
-          const h2 = this.layer2.forward(h1);
-          const rawOut = Utils.matVecMul(this.Wout, h2, this.bout);
-          modifiedOutputs.push(Utils.softmax(Array.from(rawOut)));
-        }
-        this._tempReset();
-
-        const modifiedEntropy = this._avgEntropy(modifiedOutputs);
-        const delta = Math.abs(baselineEntropy - modifiedEntropy);
-        contributions.push({ label: CONFIG.LSTM.INPUT_LABELS[dim], contribution: delta, color: _ablationColor(dim), dim });
-      }
-
-      /* Restore actual state */
-      this.resetState();
-      for (const inp of this.inputHistory) {
-        const h1 = this.layer1.forward(new Float32Array(inp));
-        this.layer2.forward(h1);
-      }
-
-      /* Normalize to sum = 1 */
-      const total = contributions.reduce((s, c) => s + c.contribution, 0) || 1;
-      contributions.forEach(c => c.contribution /= total);
-
-      return contributions.sort((a, b) => b.contribution - a.contribution);
-    }
-
-    _tempReset() {
-      this.layer1.hState = Utils.zeros(H);
-      this.layer1.cState = Utils.zeros(H);
-      this.layer2.hState = Utils.zeros(H);
-      this.layer2.cState = Utils.zeros(H);
-    }
-
-    _avgEntropy(outputs) {
-      if (!outputs.length) return 0;
-      let total = 0;
-      for (const out of outputs) {
-        let e = 0;
-        for (const p of out) { if (p > 1e-9) e -= p * Math.log(p); }
-        total += e;
-      }
-      return total / outputs.length;
-    }
-
-    /* ── VISUALIZATION DATA ── */
-    getVizData() {
-      return {
-        inputs:      Array.from(this.lastInput),
-        h1:          Array.from(this.lastH1.slice(0, 10)),
-        h2:          Array.from(this.lastH2.slice(0, 10)),
-        outputs:     Array.from(this.lastOutput),
-        threat:      this.threatLevel,
-        adaptations: this.adaptationCount,
-        outputLabels: CONFIG.LSTM.OUTPUT_LABELS,
-        inputLabels:  CONFIG.LSTM.INPUT_LABELS,
-      };
-    }
-  }
-
-  function _ablationColor(i) {
-    const colors = ['#4a8a2a','#6abf3a','#c8820a','#f5a623','#aa2010','#e03020','#2244aa','#4488ff','#8844aa','#cc66ff','#2a8a6a','#44ffcc'];
-    return colors[i % colors.length];
-  }
+  /* Stub — code that checks LSTM.network.inputHistory.length won't crash */
+  const network = {
+    get inputHistory()    { return new Array(_battlesPlayed * 12); },
+    get adaptationCount() { return _battlesPlayed; },
+  };
 
   /* ── PUBLIC API ── */
-  const net = new LSTMNetwork();
+
+  function setBattle(idx) {
+    _battleIdx = Math.min(Math.max(0, idx), BATTLE_DOCTRINES.length - 1);
+  }
+
+  function resetState() { /* Doctrine is stateless per battle — nothing to reset */ }
+
+  /*
+   * tick() — select behavior weights from historical doctrine, adjusted by
+   * real game-state signals that mirror how the VC/NVA actually responded
+   * to US tactical patterns.
+   */
+  function tick(gameState) {
+    const doc = BATTLE_DOCTRINES[_battleIdx] || BATTLE_DOCTRINES[0];
+    const w   = [...doc.weights];
+
+    /* Heavy air power → VC tunnels and disperses (documented countermeasure) */
+    if ((gameState.airStrikesUsed || 0) > 2 || (gameState.napalmUsed || 0) > 0) {
+      w[B_HIDE]     += 0.15;
+      w[B_DISPERSE] += 0.10;
+      w[B_COUNTER]  -= 0.12;
+    }
+    /* Large infantry presence → VC prepares ambushes on approach routes */
+    if ((gameState.infantryDeploy || 0) > 5) {
+      w[B_AMBUSH] += 0.10;
+    }
+    /* Late battle phase → pressure mounts, more aggressive */
+    if ((gameState.elapsed || 0) > 300) {
+      w[B_COUNTER] += 0.08;
+      w[B_MORTAR]  += 0.05;
+    }
+    /* US casualties rising → enemy grows bolder (VC political-will strategy) */
+    if ((gameState.usCasualties || 0) > 8) {
+      w[B_COUNTER] += 0.10;
+      w[B_MORTAR]  += 0.05;
+      w[B_HIDE]    -= 0.05;
+    }
+
+    /* Normalize */
+    const sum = w.reduce((a, b) => a + b, 0) || 1;
+    let out   = w.map(v => Math.max(0, v / sum));
+
+    /* Small variation — prevents repetitive, mechanical behavior */
+    out = out.map(v => v + (Math.random() - 0.5) * 0.04);
+    const sum2 = out.reduce((a, b) => a + b, 0) || 1;
+    out = out.map(v => Math.max(0, v / sum2));
+
+    _lastOutput  = out;
+    _threatLevel = Math.min(1,
+      0.2 + out[B_COUNTER] * 0.4 + out[B_AMBUSH] * 0.25 + _battlesPlayed * 0.03
+    );
+    return out;
+  }
+
+  /* Called after each battle — increment campaign experience counter */
+  function learn(vcWon, stats) { _battlesPlayed++; }
+
+  /*
+   * ablationTest() — returns historically-grounded battle factors
+   * (replaces the LSTM ablation study with actual historical analysis).
+   */
+  function ablationTest() {
+    const weights = BATTLE_FACTOR_WEIGHTS[_battleIdx] || BATTLE_FACTOR_WEIGHTS[0];
+    const total   = weights.reduce((a, b) => a + b, 0) || 1;
+    return HISTORICAL_FACTORS
+      .map((f, i) => ({ label: f.label, contribution: weights[i] / total, color: f.color }))
+      .filter(f => f.contribution > 0.001)
+      .sort((a, b) => b.contribution - a.contribution);
+  }
+
+  function getVizData() {
+    const doc = BATTLE_DOCTRINES[_battleIdx] || BATTLE_DOCTRINES[0];
+    return {
+      doctrineName:   doc.name,
+      doctrineDesc:   doc.description,
+      historicalNote: doc.historicalNote,
+      outputs:        _lastOutput,
+      threat:         _threatLevel,
+      adaptations:    _battlesPlayed,
+      outputLabels:   OUTPUT_LABELS,
+      inputLabels:    INPUT_LABELS,
+      battleIdx:      _battleIdx,
+    };
+  }
+
+  function getThreat()       { return _threatLevel; }
+  function getAdaptations()  { return _battlesPlayed; }
+  function getOutputLabels() { return OUTPUT_LABELS; }
 
   return {
-    network: net,
-    tick:         (gs)     => net.tick(gs),
-    learn:        (won, s) => net.learn(won, s),
-    resetState:   ()       => net.resetState(),
-    ablationTest: ()       => net.ablationTest(),
-    getVizData:   ()       => net.getVizData(),
-    getThreat:    ()       => net.threatLevel,
-    getAdaptations: ()     => net.adaptationCount,
-    getOutputLabels: ()    => CONFIG.LSTM.OUTPUT_LABELS,
-    /* Behavior index constants */
-    B_HIDE:       0,
-    B_AMBUSH:     1,
-    B_DISPERSE:   2,
-    B_MORTAR:     3,
-    B_COUNTER:    4,
+    setBattle, resetState, tick, learn, ablationTest, getVizData,
+    getThreat, getAdaptations, getOutputLabels,
+    B_HIDE, B_AMBUSH, B_DISPERSE, B_MORTAR, B_COUNTER,
+    network,
   };
 })();

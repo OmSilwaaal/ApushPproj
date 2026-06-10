@@ -25,6 +25,7 @@ const Game = (() => {
   let _attackAlert    = null;       /* { text, timer } — enemy wave alert */
   let _captureState   = {};         /* objective capture progress keyed by name */
   let _capReinforceTimer = {};      /* cooldown for vc reinforcements per objective */
+  let _histEventIdx   = 0;          /* next historical event to fire for this battle */
 
   /* Unit info panel — only rebuild when something changes */
   let _unitInfoCache = { id: null, hp: -1, state: '', behavior: '' };
@@ -193,9 +194,9 @@ const Game = (() => {
     });
     document.getElementById('btn-intel')?.addEventListener('click', () => {
       SoundSystem.play('uiClick');
-      const stats = Combat.getStats();
-      const viz   = LSTM.getVizData();
-      UI.showIntelReport(stats, Battles.get(_currentBattleIdx), EnemyAI.getBehaviorLabel(), Math.round(viz.threat * 100));
+      const stats  = Combat.getStats();
+      const vizData = LSTM.getVizData();
+      UI.showIntelReport(stats, Battles.get(_currentBattleIdx), EnemyAI.getBehaviorLabel(), Math.round(vizData.threat * 100), vizData);
     });
     document.getElementById('btn-speed')?.addEventListener('click', () => {
       const speeds = CONFIG.GAME_SPEEDS;
@@ -275,6 +276,7 @@ const Game = (() => {
     _resourceTimer  = 0;
     _captureState   = {};
     _capReinforceTimer = {};
+    _histEventIdx   = 0;
     _baseStart      = battle.mapConfig.usStart;
 
     /* Clear and regenerate */
@@ -431,10 +433,20 @@ const Game = (() => {
 
     _refreshUnitInfoIfChanged();
 
-    const lstmCanvas = document.getElementById('lstmCanvas');
-    const vizData    = LSTM.getVizData();
-    UI.renderLSTMViz(lstmCanvas, vizData);
-    UI.updateAIPanel(vizData);
+    /* Historical in-battle event messages */
+    const battle = Battles.get(_currentBattleIdx);
+    if (battle && battle.historicalEvents) {
+      while (_histEventIdx < battle.historicalEvents.length &&
+             _elapsed >= battle.historicalEvents[_histEventIdx].time) {
+        UI.log(battle.historicalEvents[_histEventIdx].msg, 'history');
+        _histEventIdx++;
+      }
+    }
+
+    const doctrineCanvas = document.getElementById('lstmCanvas');
+    const vizData        = LSTM.getVizData();
+    UI.renderDoctrineViz(doctrineCanvas, vizData);
+    UI.updateDoctrinePanel(vizData);
 
     GameMap.renderMinimap(document.getElementById('minimapCanvas'));
 
@@ -1142,7 +1154,7 @@ const Game = (() => {
     }
     _campaignScore += score;
 
-    /* LSTM learning */
+    /* Update doctrine campaign experience */
     EnemyAI.onBattleEnd(!victory, stats);
 
     /* Ablation */

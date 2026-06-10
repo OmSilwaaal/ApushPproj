@@ -536,6 +536,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .log-entry.vc { color: var(--red-bright); }
 .log-entry.event { color: var(--amber); }
 .log-entry.warn { color: var(--red-glow); }
+.log-entry.history {
+  color: #c8a050;
+  font-style: italic;
+  border-left: 2px solid #c8820a;
+  padding-left: 4px;
+  background: rgba(200,130,10,0.05);
+}
 .log-entry .log-time { color: var(--text-dim); margin-right: 6px; }
 
 /* ============================================================

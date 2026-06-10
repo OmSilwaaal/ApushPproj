@@ -51,20 +51,6 @@ const CONFIG = {
     NVA_TANK:   { id:'NVA_TANK',   name:'T-54B Main Battle Tank',   faction:'vc', hp:240, atk:75, def:60, spd:1.2, sight:3, noise:5.0, symbol:'K', hidden:false, attackRate:0.6, accuracy:0.70 },
   },
 
-  /* ── LSTM CONFIG ── */
-  LSTM: {
-    INPUT_SIZE:  12,
-    HIDDEN_SIZE: 20,
-    OUTPUT_SIZE:  5,
-    LR: 0.015,
-    INPUT_LABELS: [
-      'Artillery Used','Air Strikes','Napalm Used','Recon Deployed',
-      'Infantry Deployed','Armor Deployed','Helicopters','Chemical Agents',
-      'Naval Strikes','Enemy Contacts','US Casualties','Time Pressure'
-    ],
-    OUTPUT_LABELS: ['Hide/Tunnel','Ambush','Disperse','Mortar Attack','Counterattack'],
-  },
-
   /* ── PUBLIC OPINION ── */
   OPINION_START: 100,
   OPINION_THRESHOLDS: [90, 80, 70, 60, 50, 40, 30],

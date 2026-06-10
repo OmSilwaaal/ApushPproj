@@ -24,7 +24,7 @@
                 <button class="btn-secondary" id="btn-about">ABOUT THIS PROJECT</button>
             </div>
             <div class="menu-footer">
-                <span>AI Enemy · LSTM Neural Network · Real-Time Strategy · Historical Battles</span>
+                <span>8 Historical Battles · Authentic VC/NVA Doctrine · Public Opinion System · Declassified Documents</span>
             </div>
         </div>
     </div>
@@ -33,11 +33,11 @@
     <div id="screen-loading" class="screen">
         <div class="loading-content">
             <div class="loading-logo">VIETNAM: THE LONG WAR</div>
-            <div class="loading-subtitle">Initializing Combat Systems</div>
+            <div class="loading-subtitle">Loading Historical Battle Data</div>
             <div class="loading-bar-outer">
                 <div class="loading-bar-inner" id="loading-bar"></div>
             </div>
-            <div class="loading-status" id="loading-status">Loading neural network weights...</div>
+            <div class="loading-status" id="loading-status">Loading historical battle data...</div>
             <div class="loading-facts" id="loading-fact"></div>
         </div>
     </div>
@@ -87,8 +87,8 @@
                         <p id="brief-terrain">Loading...</p>
                     </div>
                     <div class="brief-section ai-note">
-                        <div class="brief-section-header">⚠ AI THREAT ASSESSMENT</div>
-                        <p id="brief-ai-note">Enemy has adapted from previous engagements. Expect updated tactics.</p>
+                        <div class="brief-section-header">⚔ VC/NVA DOCTRINE</div>
+                        <p id="brief-ai-note">Loading enemy tactical doctrine...</p>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@
                 </div>
 
                 <div class="panel-section" id="ai-section">
-                    <div class="panel-header">ENEMY AI — LSTM NETWORK</div>
+                    <div class="panel-header">ENEMY DOCTRINE &amp; TACTICS</div>
                     <canvas id="lstmCanvas" width="230" height="140"></canvas>
                     <div class="ai-stats">
                         <div class="ai-stat-row">
@@ -196,10 +196,10 @@
                             </div>
                         </div>
                         <div class="ai-stat-row">
-                            <span class="ai-stat-label">Adaptations</span>
+                            <span class="ai-stat-label">Engagements</span>
                             <span class="ai-stat-val" id="ai-adaptations">0</span>
                         </div>
-                        <div id="ai-current-tactic" class="ai-tactic">Tactic: Observing</div>
+                        <div id="ai-current-tactic" class="ai-tactic">Executing: Holding Position</div>
                     </div>
                 </div>
             </div>
@@ -324,8 +324,8 @@
                 </div>
                 <div class="pb-right">
                     <div class="pb-section ablation-section">
-                        <h3>LSTM ABLATION ANALYSIS</h3>
-                        <p class="ablation-desc">Neural network computed contribution of each factor to the battle outcome:</p>
+                        <h3>HISTORICAL BATTLE ANALYSIS</h3>
+                        <p class="ablation-desc">Historians' assessment of decisive factors in this engagement:</p>
                         <div id="ablation-bars"></div>
                         <div class="ablation-note" id="ablation-note"></div>
                     </div>
@@ -386,7 +386,7 @@
     <div id="modal-intel" class="modal hidden">
         <div class="modal-box intel-box">
             <div class="modal-hdr">
-                <span>INTELLIGENCE REPORT — LSTM ANALYSIS</span>
+                <span>INTELLIGENCE REPORT — TACTICAL ASSESSMENT</span>
                 <button class="modal-close" id="close-intel">✕</button>
             </div>
             <div id="intel-content"></div>
@@ -426,15 +426,17 @@
             </div>
             <div class="about-content">
                 <h3>Vietnam: The Long War</h3>
-                <p>An AP US History strategic simulation covering the Vietnam War from 1963–1975.</p>
-                <h4>LSTM Neural Network</h4>
-                <p>The enemy AI uses a Long Short-Term Memory (LSTM) recurrent neural network that learns from every action you take. Each game event (artillery strike, recon deployment, troop movement) becomes a node in the network. The AI adapts its tactics across battles.</p>
-                <h4>Ablation Analysis</h4>
-                <p>After each battle, the LSTM performs an ablation study — systematically removing each input variable to determine its contribution to the outcome. This shows which decisions actually mattered.</p>
+                <p>An AP US History strategic simulation covering the Vietnam War from 1963–1975, designed to make the history of this conflict tangible and immediate.</p>
                 <h4>Historical Accuracy</h4>
-                <p>All 8 battles are in true historical order. Events, unit capabilities, terrain, and political impacts are based on historical records.</p>
+                <p>All 8 battles are presented in chronological order: Ap Bac (1963), Ia Drang (1965), Junction City (1967), Khe Sanh (1968), Hue/Tet (1968), Lam Son 719 (1971), the Easter Offensive (1972), and the Fall of Saigon (1975). Unit types, terrain, objectives, and political consequences are drawn from documented historical records.</p>
+                <h4>Authentic Enemy Doctrine</h4>
+                <p>Enemy behavior is governed by historically documented VC/NVA tactical doctrine specific to each battle — not an AI learning system. The "hug the belt" tactic at Ia Drang, tunnel defense at Junction City, siege methods at Khe Sanh, and conventional armor at An Loc all reflect how these forces actually fought. The doctrine adjusts to your tactics because the real VC adjusted to American patterns.</p>
+                <h4>Historical Battle Analysis</h4>
+                <p>After each battle, the Historical Battle Analysis panel shows the factors historians identify as decisive in that engagement: air power, terrain, supply, morale, intelligence quality, command failures, and domestic political support. These are the same variables studied in military history courses.</p>
+                <h4>In-Battle Historical Events</h4>
+                <p>As each battle progresses, real historical messages appear in the battle log — quotes from commanders, newspaper reports, and turning-point moments drawn from the historical record of each engagement.</p>
                 <h4>Public Opinion System</h4>
-                <p>Your choices affect domestic support. Civilian casualties, use of chemical weapons, and costly battles erode public opinion. When thresholds are crossed, real historical anti-war events are triggered.</p>
+                <p>Your tactical choices affect domestic support. Civilian casualties, chemical weapons, and costly battles erode public opinion. When thresholds are crossed, real anti-war events trigger: the March on the Pentagon, My Lai, Kent State, the Pentagon Papers, and the War Powers Resolution.</p>
                 <button class="btn-primary" id="close-about-btn">CLOSE</button>
             </div>
         </div>

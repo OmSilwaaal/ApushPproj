@@ -1,5 +1,6 @@
 /* ============================================================
-   AI — Enemy AI controller. Uses LSTM output to drive VC behavior.
+   ENEMY CONTROLLER — Drives VC/NVA unit behavior using
+   historical doctrine profiles from the LSTM (doctrine) module.
    ============================================================ */
 const EnemyAI = (() => {
 
@@ -17,12 +18,13 @@ const EnemyAI = (() => {
     _battle = battleCfg;
     _tickTimer = 0;
     _currentBehavior    = LSTM.B_HIDE;
-    _behaviorLabel      = 'Observing';
+    _behaviorLabel      = 'Holding Position';
     _attackWaveTimer    = 120 + Math.random() * 60;
     _attackAlertPending = false;
     _spawnEnemies(battleCfg);
     _buildPatrolPoints(mapCfg);
     LSTM.resetState();
+    LSTM.setBattle(battleCfg.id);
   }
 
   function _spawnEnemies(battleCfg) {
@@ -104,15 +106,15 @@ const EnemyAI = (() => {
   }
 
   function _aiTick(gameState, logFn) {
-    /* Run LSTM */
+    /* Run doctrine selector */
     const output     = LSTM.tick(gameState);
     const behaviorIdx = _pickBehavior(output);
     _currentBehavior  = behaviorIdx;
-    _behaviorLabel    = CONFIG.LSTM.OUTPUT_LABELS[behaviorIdx];
+    _behaviorLabel    = LSTM.getOutputLabels()[behaviorIdx] || 'Unknown';
 
     if (logFn) {
       const conf = Math.round(output[behaviorIdx] * 100);
-      logFn(`Enemy AI: ${_behaviorLabel} (${conf}% confidence)`, 'vc');
+      logFn(`Enemy: ${_behaviorLabel} (${conf}%)`, 'vc');
     }
 
     /* Execute behavior */
@@ -423,7 +425,6 @@ const EnemyAI = (() => {
 
   function getBehaviorLabel() { return _behaviorLabel; }
 
-  /* Called at end of battle to update LSTM weights */
   function onBattleEnd(vcWon, stats) {
     LSTM.learn(vcWon, stats);
   }

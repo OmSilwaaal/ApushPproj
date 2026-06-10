@@ -22,13 +22,13 @@ const UI = (() => {
 
   /* ── LOADING SCREEN ── */
   const LOADING_STEPS = [
-    'Initializing LSTM neural network...',
-    'Loading terrain generation algorithms...',
-    'Processing historical battle data...',
-    'Spawning enemy AI units...',
+    'Loading historical battle data...',
+    'Processing terrain generation algorithms...',
+    'Initializing VC/NVA tactical doctrine profiles...',
+    'Spawning enemy units...',
     'Calibrating fog of war systems...',
     'Loading declassified documents...',
-    'Preparing campaign timeline...',
+    'Preparing campaign timeline (1963–1975)...',
     'Systems ready.',
   ];
 
@@ -116,12 +116,10 @@ const UI = (() => {
       ad.appendChild(chip);
     }
 
-    /* AI note */
-    const aiNote = document.getElementById('brief-ai-note');
-    if (aiAdaptations === 0) {
-      aiNote.textContent = 'LSTM has no prior battle data. Enemy will use basic guerrilla tactics.';
-    } else {
-      aiNote.textContent = `LSTM has ${aiAdaptations} adaptation${aiAdaptations > 1 ? 's' : ''}. ${battle.aiNote}`;
+    /* VC/NVA doctrine note */
+    const doctrineNote = document.getElementById('brief-ai-note');
+    if (doctrineNote) {
+      doctrineNote.textContent = battle.vcDoctrine || 'Standard guerrilla tactics — ambush, disperse, withdraw.';
     }
 
     showScreen('screen-briefing');
@@ -258,8 +256,11 @@ const UI = (() => {
     `;
   }
 
-  /* ── LSTM VISUALIZATION ── */
-  function renderLSTMViz(canvas, vizData) {
+  /* ── ENEMY DOCTRINE VISUALIZATION ──
+     Draws a bar chart of tactical behavior weights based on historical doctrine.
+     Each bar represents a real VC/NVA tactic documented in this engagement.
+  */
+  function renderDoctrineViz(canvas, vizData) {
     if (!canvas || !vizData) return;
     const ctx = canvas.getContext('2d');
     const W   = canvas.width, H = canvas.height;
@@ -268,120 +269,54 @@ const UI = (() => {
     ctx.fillStyle = '#050a04';
     ctx.fillRect(0, 0, W, H);
 
-    if (!vizData) return;
+    const { outputs, outputLabels } = vizData;
+    if (!outputs || !outputLabels) return;
 
-    const { inputs, h1, h2, outputs, outputLabels } = vizData;
-    const N_IN  = inputs.length;
-    const N_H   = h1.length;
-    const N_OUT = outputs.length;
+    const N       = outputs.length;
+    const padL    = 8, padR = 8, padT = 10, padB = 10;
+    const barH    = Math.floor((H - padT - padB - (N - 1) * 4) / N);
+    const maxBarW = W - padL - padR - 72;
 
-    /* Layer X positions */
-    const X_IN  = 20;
-    const X_H1  = W * 0.38;
-    const X_H2  = W * 0.62;
-    const X_OUT = W - 20;
+    const COLORS  = ['#2a6a4a','#c8820a','#6a4a2a','#aa2010','#4a2a8a'];
 
-    /* Draw connections (sparse for readability) */
-    ctx.globalAlpha = 0.15;
-    ctx.strokeStyle = '#4a8a2a';
-    ctx.lineWidth = 0.5;
-
-    /* Input → H1 (sample connections) */
-    for (let i = 0; i < Math.min(N_IN, 6); i++) {
-      const y1 = _nodeY(i, N_IN, H);
-      for (let j = 0; j < Math.min(N_H, 5); j++) {
-        const y2 = _nodeY(j, N_H, H);
-        const act = inputs[i] * (h1[j] + 0.5);
-        if (act > 0.2) {
-          ctx.globalAlpha = act * 0.3;
-          ctx.beginPath();
-          ctx.moveTo(X_IN + 6, y1);
-          ctx.lineTo(X_H1 - 6, y2);
-          ctx.stroke();
-        }
-      }
-    }
-
-    /* H1 → H2 */
-    for (let i = 0; i < Math.min(N_H, 5); i++) {
-      const y1 = _nodeY(i, N_H, H);
-      for (let j = 0; j < Math.min(N_H, 5); j++) {
-        const y2 = _nodeY(j, N_H, H);
-        ctx.globalAlpha = h1[i] * h2[j] * 0.4;
-        ctx.beginPath();
-        ctx.moveTo(X_H1 + 6, y1);
-        ctx.lineTo(X_H2 - 6, y2);
-        ctx.stroke();
-      }
-    }
-
-    ctx.globalAlpha = 1;
-
-    /* Input nodes */
-    for (let i = 0; i < N_IN; i++) {
-      const y = _nodeY(i, N_IN, H);
-      _drawNode(ctx, X_IN, y, 4, inputs[i], '#2244aa');
-    }
-
-    /* H1 nodes */
-    for (let i = 0; i < Math.min(N_H, 8); i++) {
-      const y = _nodeY(i, Math.min(N_H, 8), H);
-      _drawNode(ctx, X_H1, y, 5, h1[i], '#2a6a2a');
-    }
-
-    /* H2 nodes */
-    for (let i = 0; i < Math.min(N_H, 8); i++) {
-      const y = _nodeY(i, Math.min(N_H, 8), H);
-      _drawNode(ctx, X_H2, y, 5, h2[i], '#4a8a2a');
-    }
-
-    /* Output nodes + labels */
-    for (let i = 0; i < N_OUT; i++) {
-      const y = _nodeY(i, N_OUT, H);
-      _drawNode(ctx, X_OUT, y, 6, outputs[i], '#c8820a');
-
-      /* Output label */
-      ctx.fillStyle = `rgba(200,130,10,${0.4 + outputs[i] * 0.6})`;
-      ctx.font = '8px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText(outputLabels[i].split('/')[0], X_OUT - 10, y + 3);
-    }
-
-    /* Layer labels */
-    ctx.fillStyle = '#2a4a1a';
     ctx.font = '8px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('IN', X_IN, H - 4);
-    ctx.fillText('LSTM', X_H1, H - 4);
-    ctx.fillText('LSTM', X_H2, H - 4);
-    ctx.fillText('OUT', X_OUT, H - 4);
-  }
 
-  function _nodeY(i, total, H) {
-    const padding = 12;
-    const avail   = H - padding * 2 - 12;
-    if (total <= 1) return H / 2;
-    return padding + (i / (total - 1)) * avail;
-  }
+    for (let i = 0; i < N; i++) {
+      const y    = padT + i * (barH + 4);
+      const pct  = outputs[i] || 0;
+      const barW = Math.round(pct * maxBarW);
+      const isActive = pct === Math.max(...outputs);
 
-  function _drawNode(ctx, x, y, r, activation, color) {
-    const alpha = 0.2 + Math.abs(activation) * 0.8;
-    const glow  = Math.abs(activation) > 0.5;
+      /* Label */
+      ctx.fillStyle = isActive ? '#f5a623' : '#7a9468';
+      ctx.textAlign = 'left';
+      ctx.fillText(outputLabels[i].split('/')[0].substring(0, 12), padL, y + barH - 3);
 
-    if (glow) {
-      ctx.shadowColor  = color;
-      ctx.shadowBlur   = 6;
+      /* Background track */
+      ctx.fillStyle = '#0f1a0c';
+      ctx.fillRect(padL, y + barH + 1, maxBarW, 5);
+
+      /* Bar fill */
+      ctx.fillStyle = isActive ? COLORS[i % COLORS.length] : '#1e3a14';
+      ctx.fillRect(padL, y + barH + 1, barW, 5);
+
+      /* Percentage */
+      ctx.fillStyle = isActive ? '#f5a623' : '#4a6a3a';
+      ctx.textAlign = 'right';
+      ctx.fillText(Math.round(pct * 100) + '%', W - padR, y + barH - 3);
     }
-    ctx.fillStyle = color;
-    ctx.globalAlpha = Utils.clamp(alpha, 0.1, 1);
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
+
+    /* Doctrine name at bottom */
+    ctx.fillStyle = '#2a4a1a';
+    ctx.font = '7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('VC/NVA DOCTRINE: ' + (vizData.doctrineName || '').toUpperCase(), W / 2, H - 2);
   }
 
-  function updateAIPanel(vizData) {
+  /* Keep old name as alias so any remaining callers don't break */
+  function renderLSTMViz(canvas, vizData) { renderDoctrineViz(canvas, vizData); }
+
+  function updateDoctrinePanel(vizData) {
     const threatBar = document.getElementById('threat-bar');
     const adaptEl   = document.getElementById('ai-adaptations');
     const tacticEl  = document.getElementById('ai-current-tactic');
@@ -390,13 +325,18 @@ const UI = (() => {
     if (threatBar) {
       const threatPct = Math.round(vizData.threat * 100);
       threatBar.style.width = threatPct + '%';
-      /* Color shift: green → amber → red */
       const pos = 100 - threatPct;
       threatBar.style.backgroundPosition = `${pos}% 0%`;
     }
-    if (adaptEl)  adaptEl.textContent  = vizData.adaptations;
-    if (tacticEl && typeof EnemyAI !== 'undefined') tacticEl.textContent = `Tactic: ${EnemyAI.getBehaviorLabel()}`;
+    /* Battles engaged shows campaign experience, not "adaptations" */
+    if (adaptEl)  adaptEl.textContent = vizData.adaptations;
+    if (tacticEl && typeof EnemyAI !== 'undefined') {
+      tacticEl.textContent = `Executing: ${EnemyAI.getBehaviorLabel()}`;
+    }
   }
+
+  /* Keep old name as alias */
+  function updateAIPanel(vizData) { updateDoctrinePanel(vizData); }
 
   /* ── BATTLE LOG ── */
   let _logEl = null;
@@ -447,7 +387,7 @@ const UI = (() => {
       statsEl.appendChild(row);
     }
 
-    /* Ablation bars */
+    /* Historical factor bars (replaces LSTM ablation) */
     const ablEl = document.getElementById('ablation-bars');
     ablEl.innerHTML = '';
     if (ablation && ablation.length) {
@@ -471,9 +411,9 @@ const UI = (() => {
         });
       }, 100);
 
-      /* Note about top factor */
+      /* Note about top historical factor */
       const top  = ablation[0];
-      const note = `Most influential factor: ${top.label} (${Math.round(top.contribution * 100)}% contribution to outcome).`;
+      const note = `Historians identify ${top.label} as the most decisive factor in this engagement (${Math.round(top.contribution * 100)}% weight).`;
       setEl('ablation-note', note);
     }
 
@@ -532,47 +472,56 @@ const UI = (() => {
   }
 
   /* ── INTEL REPORT ── */
-  function showIntelReport(stats, battle, behaviorLabel, threatPct) {
+  function showIntelReport(stats, battle, behaviorLabel, threatPct, vizData) {
     const content = document.getElementById('intel-content');
     if (!content) return;
 
+    const doctrineDesc = vizData?.doctrineDesc || '';
+    const docNote      = vizData?.historicalNote || '';
+    const battleCount  = LSTM.getAdaptations();
+
     content.innerHTML = `
       <div style="padding:20px;font-size:12px;line-height:1.8;color:#c8d4b8;">
-        <h3 style="color:#c8820a;letter-spacing:2px;margin-bottom:12px;">CURRENT ENGAGEMENT INTELLIGENCE</h3>
+        <h3 style="color:#c8820a;letter-spacing:2px;margin-bottom:12px;">TACTICAL INTELLIGENCE ASSESSMENT</h3>
         <div style="margin-bottom:16px;">
           <strong style="color:#f5a623;">Battle:</strong> ${battle.name}<br>
           <strong style="color:#f5a623;">Date:</strong> ${battle.date}<br>
           <strong style="color:#f5a623;">Elapsed:</strong> ${Utils.formatTime(stats.elapsed)}
         </div>
-        <h4 style="color:#4a8a2a;margin-bottom:8px;">ENEMY AI STATUS</h4>
+        <h4 style="color:#4a8a2a;margin-bottom:8px;">ENEMY DOCTRINE</h4>
         <div style="margin-bottom:16px;">
           <strong>Current Tactic:</strong> ${behaviorLabel}<br>
           <strong>Threat Level:</strong> ${threatPct}%<br>
-          <strong>Adaptations:</strong> ${LSTM.getAdaptations()}<br>
-          <strong>Enemy Contacts:</strong> ${stats.enemyContacts}
+          <strong>Prior Engagements:</strong> ${battleCount}<br>
+          <strong>Enemy Contacts:</strong> ${stats.enemyContacts}<br>
+          <em style="font-size:11px;color:#7a9468;">${doctrineDesc}</em>
         </div>
         <h4 style="color:#4a8a2a;margin-bottom:8px;">US FORCE STATUS</h4>
-        <div>
+        <div style="margin-bottom:16px;">
           <strong>Active Units:</strong> ${Units.getUS().length}<br>
           <strong>Casualties:</strong> ${stats.usCasualties}<br>
           <strong>Enemy KIA:</strong> ${stats.vcKilled}
         </div>
-        <div style="margin-top:16px;padding:10px;background:rgba(170,32,16,0.1);border:1px solid #6a1208;font-size:11px;">
-          <strong style="color:#e03020;">LSTM NETWORK NOTE:</strong><br>
-          The enemy AI has processed ${LSTM.network.inputHistory.length} game states this battle.
-          Pattern analysis suggests the enemy has identified your ${_topPattern(stats)}.
+        ${docNote ? `<div style="margin-top:16px;padding:10px;background:rgba(200,130,10,0.08);border:1px solid #6a4a0a;font-size:11px;font-style:italic;color:#c8a050;">"${docNote}"</div>` : ''}
+        <div style="margin-top:12px;padding:8px;background:rgba(42,68,26,0.3);border:1px solid #2a4a1a;font-size:11px;color:#7a9468;">
+          ${_vcTacticalNote(stats)}
         </div>
       </div>
     `;
     showModal('modal-intel');
   }
 
-  function _topPattern(stats) {
-    const s = stats;
-    if (s.airStrikesUsed > 3) return 'heavy reliance on air support — expect tunneling and dispersal';
-    if (s.reconDeployed > 2) return 'reconnaissance patterns — expect ambushes on recon routes';
-    if (s.infantryDeploy > 8) return 'large infantry concentrations — expect mortar targeting';
-    return 'movement patterns — AI is still analyzing';
+  function _vcTacticalNote(stats) {
+    if ((stats.airStrikesUsed || 0) > 3) {
+      return 'Your heavy air support is forcing the enemy to tunnel and disperse — historically, VC units went underground when US air dominance was established. But they will wait you out.';
+    }
+    if ((stats.reconDeployed || 0) > 2) {
+      return 'Recon teams are in the field. Historically, VC political cadres maintained informant networks in villages — your movements may already be known to the enemy.';
+    }
+    if ((stats.infantryDeploy || 0) > 8) {
+      return 'Large infantry concentrations historically attracted VC mortar fire. The enemy prefers to hit massed troops, then withdraw before artillery can respond.';
+    }
+    return 'The VC strategic doctrine: "Every minute the Americans stay, public support at home erodes. We do not need to win militarily — we need to outlast their political will."';
   }
 
   /* ── TUTORIAL ── */
@@ -582,7 +531,7 @@ const UI = (() => {
       title: 'Welcome — Vietnam: The Long War',
       html: `<p>This AP US History simulation places you in command of US forces during the Vietnam War (1963–1975). Your decisions will echo real strategic choices made by American commanders — with real historical consequences.</p>
 <div class="tut-fact">"We were wrong, terribly wrong. We owe it to future generations to explain why." — Robert S. McNamara, Secretary of Defense, 1995</div>
-<p>You will fight through 8 historically-accurate battles, from the early advisory years to the final US withdrawal. An LSTM neural network drives the enemy AI — it learns from your tactics and adapts, just as the real Viet Cong studied and countered American patterns.</p>
+<p>You will fight through 8 historically-accurate battles, from the early advisory years to the Fall of Saigon. Enemy behavior is governed by authentic VC/NVA tactical doctrine specific to each engagement — the same doctrines real commanders used to counter American military power.</p>
 <p class="tut-tip">📋 Access classified historical documents anytime during battle using the 📋 button in the top HUD.</p>`,
     },
     {
@@ -620,12 +569,12 @@ const UI = (() => {
     },
     {
       icon: '⚔️',
-      title: 'Combat & the LSTM Enemy AI',
-      html: `<p>Combat resolves automatically when enemy units enter your weapons range. Watch the <strong>BATTLE LOG</strong> (bottom-right) for real-time engagement reports.</p>
-<div class="tut-highlight"><strong>Enemy AI — LSTM Neural Network:</strong><br>
-The enemy uses a Long Short-Term Memory (LSTM) recurrent neural network. It tracks your use of artillery, airstrikes, troop deployments, and casualties across every battle — then adapts its behavior for the next engagement. The AI panel (right side) visualizes its current activation in real time.</div>
-<p><strong>Enemy behaviors:</strong> <em>Hide/Tunnel</em> (go underground to avoid area fire), <em>Ambush</em> (wait in concealment until you approach), <em>Disperse</em> (scatter to reduce airstrike effectiveness), <em>Mortar</em> (indirect suppression), and <em>Counterattack</em> (aggressive rush).</p>
-<div class="tut-fact">Historical parallel: The Viet Cong coined the phrase "grab them by the belt buckle" — staying so close to US forces that American air power and artillery could not be called without hitting their own men. They studied US tactics relentlessly.</div>
+      title: 'Combat & Enemy Doctrine',
+      html: `<p>Combat resolves automatically when enemy units enter your weapons range. Watch the <strong>BATTLE LOG</strong> (bottom-right) for real-time engagement reports — including historical context messages that appear as events unfold.</p>
+<div class="tut-highlight"><strong>Enemy Doctrine Panel (right side):</strong><br>
+Each battle's enemy behavior is drawn from documented VC/NVA tactical doctrine for that specific engagement. The bar chart shows the probability of each tactic being active. Doctrine shifts in response to your choices — heavy air power drives the enemy underground; large infantry concentrations invite mortar fire.</div>
+<p><strong>Enemy tactics:</strong> <em>Defensive Hold</em> (prepared positions, waiting), <em>Ambush / Hit-Run</em> (concealed flanking), <em>Disperse</em> (scatter to reduce air strike effectiveness), <em>Indirect Fire</em> (mortar barrages on detected US positions), and <em>Direct Assault</em> (coordinated rush).</p>
+<div class="tut-fact">The Viet Cong's primary manual stated: "Never fight the Americans on their terms. Make them come into the jungle. Make them fight in the dark. Make them afraid to call artillery because civilians are always nearby." They studied US tactics relentlessly — and countered each one.</div>
 <p><strong>Public Opinion</strong> is your hidden resource. US casualties, civilian deaths, and chemical weapon use erode domestic support. Real historical anti-war events trigger when support hits key thresholds.</p>`,
     },
     {
@@ -648,9 +597,9 @@ The enemy uses a Long Short-Term Memory (LSTM) recurrent neural network. It trac
 <div class="tut-highlight"><strong>Public Opinion</strong> starts at 100% and falls from:<br>
 • US casualties · Civilian deaths (large penalty) · Agent Orange use (−15%)<br>
 • Historical anti-war events trigger automatically at 90%, 80%, 70%, 60%, 50%, 40%, 30%<br>
-• Real events: the March on the Pentagon, My Lai, Kent State, Pentagon Papers, and more</div>
-<p>After each battle, review the <strong>LSTM Ablation Analysis</strong> — it shows which of your tactical decisions most influenced the outcome. This mirrors the real analytical method used by military strategists to evaluate campaign effectiveness.</p>
-<div class="tut-fact">"The war was being won militarily and lost politically." — Many historians' summary of the Vietnam War. Every battle you win here reflects this tension. The US military never lost a major engagement — but lost the war. Understanding how and why is the core lesson of this simulation.</div>
+• Real events: March on the Pentagon, My Lai, Kent State, Pentagon Papers, and more</div>
+<p>After each battle, review the <strong>Historical Battle Analysis</strong> — it shows which historically documented factors most shaped this engagement: air power, terrain, supply lines, command failures, and domestic support. These are the same factors historians identify as decisive.</p>
+<div class="tut-fact">"The war was being won militarily and lost politically." — The central paradox of the Vietnam War. The US military never lost a major engagement — but lost the war. The US spent $168 billion (over $1 trillion today), dropped more bombs than fell on Germany in World War II, and still could not achieve its political objectives. Understanding how and why is the core lesson of this simulation.</div>
 <p style="color:var(--green-vivid);margin-top:10px;">Good luck, Commander. The history books are watching.</p>`,
     },
   ];
@@ -735,7 +684,9 @@ The enemy uses a Long Short-Term Memory (LSTM) recurrent neural network. It trac
     showScreen, showModal, hideModal, showLoading, showBriefing,
     updateHUD, updateOpinion, updateReconCount,
     startCooldown, updateCooldowns, isOnCooldown, setActionSelected,
-    updateUnitInfo, renderLSTMViz, updateAIPanel,
+    updateUnitInfo,
+    renderLSTMViz, renderDoctrineViz,
+    updateAIPanel, updateDoctrinePanel,
     initLog, log, showPostBattle, showAntiwarEvent,
     initDocsModal, showIntelReport,
     initTutorial, showTutorial,

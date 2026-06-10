@@ -42,7 +42,12 @@ const Battles = (() => {
       historicalOutcome: 'The battle was a significant VC tactical victory. Three US Army advisors were killed, and five helicopters were shot down. ARVN forces failed to effectively encircle the VC, who withdrew at nightfall. The battle exposed critical weaknesses in the ARVN chain of command and the limits of US advisory strategy.',
       winCondition: { objectives: 1, vcKills: 40 },
       lossCondition: { usCasualties: 60, timeLimit: 480 },
-      aiNote: 'Enemy has no prior battle data. Expect standard guerrilla tactics — ambushes along irrigation dikes, prepared defensive positions.',
+      vcDoctrine: 'Prepared defensive positions along irrigation dikes. The VC 514th Battalion stood and fought — an unusual choice that exploited ARVN hesitation and poor coordination.',
+      historicalEvents: [
+        { time: 45,  msg: 'HISTORY: The VC have opened fire on US UH-1 helicopters — 5 aircraft shot down in this battle historically.' },
+        { time: 120, msg: 'HISTORY: Col. John Paul Vann to MACV: "This is a miserable damn performance, just like it always is."' },
+        { time: 240, msg: 'HISTORY: ARVN blocking forces never closed the escape route — VC begin withdrawing at nightfall.' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -90,7 +95,12 @@ const Battles = (() => {
       historicalOutcome: 'US forces killed approximately 1,800 NVA soldiers but suffered 234 KIA. The battle demonstrated the effectiveness of airmobile tactics but also revealed that the NVA could inflict severe casualties on US forces. The nearby ambush at LZ Albany (79 KIA) underscored the dangers of the Central Highlands.',
       winCondition: { objectives: 2, vcKills: 80 },
       lossCondition: { usCasualties: 80, timeLimit: 600 },
-      aiNote: 'Enemy AI has adapted from Ap Bac. Expect NVA to close quickly to negate air support — the "hug" tactic. Helicopter LZs will be targeted.',
+      vcDoctrine: 'Close assault — "grab the belt buckle." NVA Commander Nguyen Huu An ordered troops within 30 meters of US lines so air power could not be called without hitting Americans.',
+      historicalEvents: [
+        { time: 60,  msg: 'HISTORY: NVA close to within 30 meters — too close for air support. This is the "hug" tactic. Your helicopters cannot help now.' },
+        { time: 180, msg: 'HISTORY: LZ Albany ambush begins nearby — 155 men of 2/7 Cavalry walk into a column ambush. 79 Americans killed in 15 minutes.' },
+        { time: 360, msg: 'HISTORY: McNamara Memo, Nov 3 1965: "Attrition alone will not achieve our objectives. The enemy can replace losses from the North."' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -137,7 +147,12 @@ const Battles = (() => {
       historicalOutcome: 'While US forces inflicted heavy casualties (~2,700 VC/NVA killed), COSVN escaped into Cambodia. The operation demonstrated the limitations of conventional military strategy against an enemy with a cross-border sanctuary. The US could win every battle but not the war.',
       winCondition: { objectives: 2, vcKills: 100 },
       lossCondition: { usCasualties: 100, timeLimit: 720 },
-      aiNote: 'AI has learned that direct confrontation costs too much. Expect heavy use of tunnel networks and ambushes on predictable approach routes.',
+      vcDoctrine: 'Tunnel defense and Cambodian sanctuary. The VC 9th Division fights in short bursts then dissolves into underground tunnels — COSVN headquarters will slip across the border before encirclement is complete.',
+      historicalEvents: [
+        { time: 60,  msg: 'HISTORY: Largest US airborne operation since WWII — the only combat parachute jump of the Vietnam War is happening today.' },
+        { time: 240, msg: 'HISTORY: COSVN has slipped into Cambodia. The US cannot pursue across the border — a restriction that will define this entire war.' },
+        { time: 480, msg: 'HISTORY: Operation result: Despite 22 battalions, COSVN survives. "The enemy can be beaten everywhere, yet nothing is won." — Col. David Hackworth.' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -186,7 +201,12 @@ const Battles = (() => {
       historicalOutcome: 'The Marines held Khe Sanh. US forces suffered approximately 730 KIA; NVA losses are estimated at 10,000–15,000. However, the base was abandoned in July 1968 — the very outcome that General Westmoreland had promised would not happen. The strategic value of the siege remains disputed.',
       winCondition: { objectives: 3, timeLimit: 480, survivalMode: true },
       lossCondition: { objectivesLost: 2, usCasualties: 150 },
-      aiNote: 'Enemy AI has learned from 3 previous battles. Expect coordinated multi-front attacks, heavy mortar use, and tunnel infiltration of the perimeter.',
+      vcDoctrine: 'Siege and encirclement modeled on Dien Bien Phu (1954). Dig trenches toward the perimeter. Mass mortars from the hills. Deny the airstrip and starve the garrison.',
+      historicalEvents: [
+        { time: 30,  msg: 'HISTORY: President Johnson has a scale model of Khe Sanh installed in the White House Situation Room. He is obsessed with its defense.' },
+        { time: 180, msg: 'HISTORY: Operation Niagara begins — the most concentrated air bombing campaign in history to this date. Over 100,000 tons of bombs will fall.' },
+        { time: 360, msg: 'HISTORY: Intelligence now suggests Khe Sanh was a diversion — the Tet Offensive is 10 days away, targeting 108 cities simultaneously.' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -234,7 +254,12 @@ const Battles = (() => {
       historicalOutcome: 'US and ARVN forces recaptured Hue on March 3, 1968. The battle cost 216 Americans and 384 ARVN killed; NVA/VC casualties exceeded 5,000. The execution of 2,800+ civilians by NVA forces was widely condemned. The battle, broadcast on television, severely damaged American public support for the war.',
       winCondition: { objectives: 2, vcKills: 80 },
       lossCondition: { usCasualties: 120, timeLimit: 660, opinionDrop: 30 },
-      aiNote: 'Enemy AI is now highly adaptive. Urban terrain eliminates most of your air advantage. Expect coordinated room-by-room defense.',
+      vcDoctrine: 'Fortify every building in the Citadel. Fight room by room. The 1-meter-thick ancient walls absorb artillery and air strikes. Make the Americans pay for every meter of the ancient imperial city.',
+      historicalEvents: [
+        { time: 60,  msg: 'HISTORY: The Citadel\'s walls were built in 1804 — designed to withstand artillery. US commanders did not know this when they called in fire support.' },
+        { time: 200, msg: 'HISTORY: NVA forces execute 2,800–6,000 civilians in mass graves at Gia Hoi. The massacres will not be confirmed until 1969.' },
+        { time: 400, msg: 'HISTORY: Walter Cronkite, CBS News: "It seems now more certain than ever that the bloody experience of Vietnam is to end in a stalemate."' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -281,7 +306,12 @@ const Battles = (() => {
       historicalOutcome: 'Lam Son 719 was a tactical and strategic failure. ARVN suffered over 50% casualties in some units. Images of soldiers hanging from helicopter skids filled American TV screens. The operation revealed that Vietnamization had not worked — South Vietnam could not defend itself without American ground troops.',
       winCondition: { objectives: 2, vcKills: 100 },
       lossCondition: { usCasualties: 130, timeLimit: 540 },
-      aiNote: 'Enemy AI is now very advanced. Expect coordinated combined-arms attacks with tanks and anti-aircraft coverage. Your helicopter advantage is severely degraded.',
+      vcDoctrine: 'Combined arms: coordinate Soviet-supplied T-54 tanks with NVA infantry. Saturate the approach routes with anti-aircraft guns. ARVN has no answer for armor — and US ground troops are forbidden by Congress from crossing the border.',
+      historicalEvents: [
+        { time: 45,  msg: 'HISTORY: Congress has passed the Cooper-Church Amendment — no US ground troops may enter Laos. ARVN fights alone on the ground.' },
+        { time: 180, msg: 'HISTORY: NVA T-54 tanks appear in force — ARVN has never faced massed armor before. Entire units begin to break.' },
+        { time: 360, msg: 'HISTORY: Images of ARVN soldiers clinging to helicopter skids to escape are broadcast worldwide. Nixon\'s Vietnamization policy is in ruins.' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -329,7 +359,12 @@ const Battles = (() => {
       historicalOutcome: 'An Lộc held after 66 days. US air power — including B-52 Arc Light missions — was decisive. NVA forces suffered approximately 100,000 casualties across the entire Easter Offensive. However, the NVA retained control of large areas of South Vietnam, and Paris peace negotiations accelerated. The offensive demonstrated that without US air power, South Vietnam would fall.',
       winCondition: { objectives: 1, timeLimit: 600, survivalMode: true },
       lossCondition: { objectivesLost: 1, usCasualties: 150 },
-      aiNote: 'Maximum threat level. Enemy AI has 6 battles of learning data. Expect coordinated armor-infantry-artillery attacks. The NVA plays conventionally here — no guerrilla tactics.',
+      vcDoctrine: 'Three-division conventional siege. Mass artillery preparation, then coordinated armor-infantry assault. Surround and strangle An Loc. Cut Route 13 south. This is no longer guerrilla war — this is the NVA fighting as a modern conventional army.',
+      historicalEvents: [
+        { time: 60,  msg: 'HISTORY: B-52 Arc Light strikes are falling within 1 kilometer of friendly lines — the closest strategic bombing to US-allied troops in history.' },
+        { time: 300, msg: 'HISTORY: 120,000 NVA troops are attacking simultaneously across three fronts. The entire Easter Offensive is the largest operation since Tet.' },
+        { time: 480, msg: 'HISTORY: Paris peace negotiations have accelerated. Nixon is preparing for the 1972 election. The military is being asked to hold the line until a deal is signed.' },
+      ],
     },
 
     /* ──────────────────────────────────────────────────────
@@ -375,7 +410,13 @@ const Battles = (() => {
       historicalOutcome: 'Saigon fell on April 30, 1975. NVA tanks crashed through the gates of the Presidential Palace at 11:30 AM. The United States evacuated over 7,000 Americans and 130,000 South Vietnamese. 58,220 Americans had died in the war. The last words broadcast from the Saigon radio station were: "We must accept the reality that we have run out of time." The war was over.',
       winCondition: { evacuees: 5, timeLimit: 480, survivalMode: true },
       lossCondition: { objectivesLost: 1, usCasualties: 50 },
-      aiNote: 'FINAL BATTLE. Enemy at maximum adaptation. This battle cannot be won militarily — only through skillful evacuation. The enemy AI has learned every one of your tactics across 7 battles.',
+      vcDoctrine: 'Final offensive — no more concealment. NVA Tank No. 843 is driving openly down the main boulevard toward the Presidential Palace. This battle cannot be won militarily. The mission is evacuation, not combat.',
+      historicalEvents: [
+        { time: 30,  msg: 'HISTORY: Ambassador Graham Martin has refused to evacuate until now — he refused to believe Saigon would actually fall.' },
+        { time: 120, msg: 'HISTORY: Radio Saigon plays "White Christmas" by Bing Crosby — the pre-arranged signal for all Americans to report to evacuation points immediately.' },
+        { time: 300, msg: 'HISTORY: NVA Tank No. 843 crashes through the Presidential Palace gates at 11:30 AM. The flag of the Republic of South Vietnam is lowered for the last time.' },
+        { time: 420, msg: 'HISTORY: The last helicopter leaves the US Embassy roof at 7:53 AM. 58,220 Americans and over 2 million Vietnamese civilians died in this war.' },
+      ],
     },
   ];
 
